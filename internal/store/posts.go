@@ -8,21 +8,22 @@ import (
 )
 
 type Post struct {
-	ID       int64    `json:id`
-	Content  string   `json:content`
-	Title    string   `json:title`
-	UserID   int64    `json:user_id`
-	Tags     []string `json:tags`
-	CreateAt string   `json:created_at`
-	UpdateAt string   `json:updated_at`
+	ID        int64    `json:"id"`
+	Content   string   `json:"content"`
+	Title     string   `json:"title"`
+	UserID    int64    `json:"user_id"`
+	Tags      []string `json:"tags"`
+	CreatedAt string   `json:"created_at"`
+	UpdatedAt string   `json:"updated_at"`
+	Version   int      `json:"version"`
+	User      User     `json:"user"`
 }
-
 type PostStore struct {
 	db *sql.DB
 }
 
 func (p *PostStore) Create(ctx context.Context, post *Post) error {
-	query := `INSERT INTO posts (content,tiltle, user_id,tags)
+	query := `INSERT INTO posts (content,title, user_id,tags)
 	VALUES ($1,$2,$3,$4) RETURNING id, created_at, updated_at`
 	err := p.db.QueryRowContext(
 		ctx,
@@ -33,8 +34,8 @@ func (p *PostStore) Create(ctx context.Context, post *Post) error {
 		pq.Array(post.Tags),
 	).Scan(
 		&post.ID,
-		&post.CreateAt,
-		&post.UpdateAt,
+		&post.CreatedAt,
+		&post.UpdatedAt,
 	)
 	if err != nil {
 		return err
