@@ -21,7 +21,7 @@ type Storage struct {
 		Update(context.Context, *Post) error
 	}
 	Users interface {
-		Create(context.Context, *User) error
+		Create(context.Context, *sql.Tx, *User) error
 	}
 	Comments interface {
 		Create(context.Context, *Comment) error
@@ -29,7 +29,7 @@ type Storage struct {
 	}
 }
 
-func NewPostgresStorage(db *sql.DB) Storage {
+func NewStorage(db *sql.DB) Storage {
 	return Storage{
 		Posts:    &PostStore{db},
 		Users:    &UserStore{db},
