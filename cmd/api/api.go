@@ -1,13 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"socialx/internal/store"
 	"time"
 
+	"socialx/docs"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
 
@@ -25,9 +29,10 @@ type dbConfig struct {
 }
 
 type config struct {
-	addr string
-	db   dbConfig
-	env  string
+	addr   string
+	db     dbConfig
+	env    string
+	apiURL string
 }
 
 func (app *application) mount() *chi.Mux {
@@ -40,6 +45,8 @@ func (app *application) mount() *chi.Mux {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
+		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
+		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(docsURL)))
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPostHandler)
 			r.Route("/{postID}", func(r chi.Router) {
@@ -56,14 +63,14 @@ func (app *application) mount() *chi.Mux {
 				//r.Use(app.AuthTokenMiddleware)
 
 				r.Get("/", app.getUserHandler)
-			 	r.Put("/follow", app.followUserHandler)
-			 	r.Put("/unfollow", app.unfollowUserHandler)
-			// })
+				r.Put("/follow", app.followUserHandler)
+				r.Put("/unfollow", app.unfollowUserHandler)
+			})
 
-			// r.Group(func(r chi.Router) {
-			// 	r.Use(app.AuthTokenMiddleware)
-			// 	r.Get("/feed", app.getUserFeedHandler)
-			// })
+			r.Group(func(r chi.Router) {
+				// 	r.Use(app.AuthTokenMiddleware)
+				r.Get("/feed", app.getUserFeedHandler)
+			})
 		})
 	})
 	return r
@@ -76,6 +83,10 @@ func (app *application) mount() *chi.Mux {
 }
 
 func (app *application) run(mux *chi.Mux) error {
+	docs.SwaggerInfo.Version = version
+	docs.SwaggerInfo.Host = app.config.apiURL
+	docs.SwaggerInfo.BasePath = "/v1"
+
 	srv := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      mux,

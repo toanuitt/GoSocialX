@@ -9,3 +9,5 @@ go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@lat
 go get -u go.uber.org/zap
 go get github.com/go-playground/validator/v10
 sudo systemctl stop postgresql
+go install github.com/swaggo/swag/cmd/swag@latest
+http://localhost:8080/v1/swagger/index.html#/
