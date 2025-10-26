@@ -8,11 +8,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
 )
 
 type application struct {
 	config config
 	store  store.Storage
+	logger *zap.SugaredLogger
 }
 
 type dbConfig struct {
@@ -40,6 +42,9 @@ func (app *application) mount() *chi.Mux {
 		r.Get("/health", app.healthCheckHandler)
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPostHandler)
+			r.Route("/{postID}", func(r chi.Router) {
+				r.Get("/", app.getPostHandler)
+			})
 		})
 	})
 	return r
